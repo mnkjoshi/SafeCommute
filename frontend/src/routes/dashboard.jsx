@@ -68,7 +68,7 @@ export default function Dashboard() {
   const { isLoaded, loadError } = useLoadScript({
     // googleMapsApiKey: getEnvVariable('GOOGLE_MAPS_API_KEY'),
     // AIzaSyCp2vo_WzQJ_9L1W7oYKEuEhF_5-4xxIWc
-    googleMapsApiKey: PUTKEY,
+    googleMapsApiKey: "AIzaSyCp2vo_WzQJ_9L1W7oYKEuEhF_5-4xxIWc",
   });
 
   // Filter markers based on selection
