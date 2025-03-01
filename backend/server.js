@@ -193,6 +193,23 @@ app.post('/incident/update', async (request, response) => {
             updatedAt: new Date().toISOString()
         });
         
+        const msg = {
+            to: email, // Change to your recipient
+            from: 'disvelop@proton.me', // Change to your verified sender
+            subject: 'TRANSIT ALERT',
+            html: `<html> <head> <title>EMAIL</title> </head> <body> <div> <h1 style="text-align:center;">ADMIN ESCALATED TRANSIT ALERT</h1> <hr> <p style= "text-align:center;">INCIDENT HAS BEEN ESCALATED</p> <a clicktracking=off href="${incidentId}" style="text-align:center; align-self:center;">${incidentId}</a> </div> </body> </html>`,
+        }
+    
+        sgMail
+        .send(msg)
+        .then(() => {
+          console.log('Email verification sent!')
+        })
+        .catch((error) => {
+            console.log("VerE")
+          console.error(error)
+        })
+
         // Log the action
         db.ref(`activity_logs`).push({
             user: user,
