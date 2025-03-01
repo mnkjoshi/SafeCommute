@@ -90,7 +90,7 @@ function Attempt(Which, Username, Password, Email, navigate) {
         Notify("Success", `Hello admin, ${response.data.username}! Redirecting to SafeCommute dashboard.`)
         setTimeout(function() {
           notifyingLogin = false
-          navigate("/app")
+          navigate("/dashboard")
         }, 2000)
       } else {
         console.log(response.data)

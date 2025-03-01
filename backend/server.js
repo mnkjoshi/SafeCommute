@@ -124,18 +124,38 @@ app.post('/report', async (request, response) => {
 
 
 app.get('/retrieve', async (request, response) => {
+    // For GET requests, parameters should come from query params, not body
+    // But since your current code uses body, we'll convert this to a POST endpoint
+    // to maintain compatibility with your client code
+});
+
+// Add POST endpoint for retrieve (since we're sending data in request body)
+app.post('/retrieve', async (request, response) => {
     const {user, token} = request.body
     const db = admin.database();
 
-    if (Authenticate(user, token)) {
-        const snapshot = await db.ref(`incidents`).once('value');
-        response.status(200)
-        response.send(JSON.parse(snapshot.val()))
-    } else {
-        response.status(202)
-        response.send("UNV")
+    try {
+        if (Authenticate(user, token)) {
+            const snapshot = await db.ref(`incidents`).once('value');
+            
+            // Firebase already returns data as a JavaScript object
+            // No need to parse with JSON.parse
+            const data = snapshot.val();
+            
+            if (!data) {
+                response.status(200).send({});
+                return;
+            }
+            
+            response.status(200).send(data);
+        } else {
+            response.status(202).send("UNV");
+        }
+    } catch (error) {
+        console.error("Error retrieving incidents:", error);
+        response.status(500).send("Server error occurred");
     }
-})
+});
 
 //process.env.PORT
 const listener = app.listen(3000, (error) => {
@@ -247,7 +267,7 @@ async function OfferVerify(username, token, email) {
 
     email = email.replace("@@@", ".")
 
-    let link = "https://safecommuteweb.app/auth/" + token
+    let link = "https://safecommute.web.app/auth/" + token
     const msg = {
         to: email, // Change to your recipient
         from: 'disvelop@proton.me', // Change to your verified sender

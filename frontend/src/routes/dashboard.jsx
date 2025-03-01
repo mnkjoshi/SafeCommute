@@ -8,11 +8,10 @@ const mapContainerStyle = {
   height: "100%",
 };
 
-
 // Default center - can be adjusted as needed
 const center = {
     lat: 53.5461,
-    lng: -113.4938, // New York City
+    lng: -113.4938, // Edmonton
 };
 
 // Map options
@@ -21,16 +20,21 @@ const options = {
   zoomControl: true,
 };
 
-// Sample data for markers
+// Sample data for markers (Edmonton transit-focused)
 const sampleIncidents = [
-  { id: 1, position: { lat: 40.7128, lng: -74.0060 + 0.01 }, title: "Traffic Accident", type: "incident" },
-  { id: 2, position: { lat: 40.7128 + 0.02, lng: -74.0060 - 0.01 }, title: "Road Closure", type: "incident" },
-  { id: 3, position: { lat: 40.7128 - 0.01, lng: -74.0060 + 0.02 }, title: "Construction Zone", type: "incident" },
+  { id: 1, position: { lat: 53.5415, lng: -113.4918 }, title: "Passenger Medical Emergency", type: "incident", details: { capture: "Passenger collapsed on platform, medical assistance on site" } },
+  { id: 2, position: { lat: 53.5366, lng: -113.5149 }, title: "Service Disruption", type: "incident", details: { capture: "LRT train mechanical issue, shuttle service in effect" } },
+  { id: 3, position: { lat: 53.5180, lng: -113.5132 }, title: "Security Incident", type: "incident", details: { capture: "Altercation between passengers at Whyte Ave station" } },
+  { id: 4, position: { lat: 53.5942, lng: -113.4564 }, title: "Infrastructure Issue", type: "incident", details: { capture: "Signal malfunction near Clareview station" } },
+  { id: 5, position: { lat: 53.5221, lng: -113.6230 }, title: "Transit Disturbance", type: "incident", details: { capture: "Disruptive passenger removed from bus near West Edmonton Mall" } },
 ];
 
 const sampleTraffic = [
-  { id: 4, position: { lat: 40.7128 + 0.01, lng: -74.0060 + 0.01 }, title: "Heavy Traffic", type: "traffic" },
-  { id: 5, position: { lat: 40.7128 - 0.02, lng: -74.0060 - 0.02 }, title: "Slow Moving Traffic", type: "traffic" },
+  { id: 6, position: { lat: 53.5461, lng: -113.5038 }, title: "Transit Delay", type: "traffic", details: { capture: "Buses experiencing 15-minute delays due to construction" } },
+  { id: 7, position: { lat: 53.5232, lng: -113.5263 }, title: "Heavy Transit Congestion", type: "traffic", details: { capture: "Higher than usual passenger volume at University station" } },
+  { id: 8, position: { lat: 53.5440, lng: -113.4895 }, title: "LRT Slowdown", type: "traffic", details: { capture: "Trains operating at reduced speed downtown due to track inspection" } },
+  { id: 9, position: { lat: 53.5175, lng: -113.4590 }, title: "Bus Route Diversion", type: "traffic", details: { capture: "Route 9 diverted due to street festival" } },
+  { id: 10, position: { lat: 53.4575, lng: -113.4835 }, title: "Transit Access Issue", type: "traffic", details: { capture: "Elevator out of service at Century Park station" } },
 ];
 
 let currentMessage = 0;
@@ -38,32 +42,181 @@ let currentMessage = 0;
 export default function Dashboard() {
   const navigate = useNavigate();
   const mapRef = useRef();
-  const [markers, setMarkers] = useState([...sampleIncidents, ...sampleTraffic]);
+  const [markers, setMarkers] = useState([]);
   const [selectedMarker, setSelectedMarker] = useState(null);
   const [filter, setFilter] = useState("all");
   const [stats, setStats] = useState({
-    incidents: sampleIncidents.length,
-    traffic: sampleTraffic.length
+    incidents: 0,
+    traffic: 0
   });
-
-
-
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   // Load Google Maps script
   const { isLoaded, loadError } = useLoadScript({
-    // googleMapsApiKey: getEnvVariable('GOOGLE_MAPS_API_KEY'),
-    // AIzaSyCp2vo_WzQJ_9L1W7oYKEuEhF_5-4xxIWc
     googleMapsApiKey: "AIzaSyCp2vo_WzQJ_9L1W7oYKEuEhF_5-4xxIWc",
   });
 
+  // Format incident data from API to match our marker format
+  const formatIncidentData = (incidents) => {
+    if (!incidents || typeof incidents !== 'object') {
+      console.error("Invalid incident data received:", incidents);
+      return [];
+    }
+  
+    const formattedData = [];
+    
+    // Loop through each incident key
+    Object.keys(incidents).forEach(key => {
+      try {
+        const incident = incidents[key];
+        
+        // Check if incident has the expected structure
+        if (!incident || !incident.location) {
+          console.warn(`Incident ${key} missing required data, skipping`);
+          return; // Skip this incident
+        }
+        
+        // Parse location from string format "latitude,longitude"
+        let lat = center.lat;
+        let lng = center.lng;
+        
+        if (typeof incident.location === 'string') {
+          const [latitude, longitude] = incident.location.split(',').map(coord => parseFloat(coord.trim()));
+          
+          if (!isNaN(latitude) && !isNaN(longitude)) {
+            lat = latitude;
+            lng = longitude;
+          } else {
+            console.warn(`Could not parse location for incident ${key}: ${incident.location}`);
+          }
+        }
+        
+        // Create formatted marker object
+        formattedData.push({
+          id: key,
+          position: { lat, lng },
+          title: incident.type ? `${incident.type.charAt(0).toUpperCase() + incident.type.slice(1)} Incident` : "Unknown Incident",
+          type: incident.type?.toLowerCase().includes('traffic') ? "traffic" : "incident",
+          details: {
+            ...incident,
+            // If you need to decode the base64 capture data, do it here
+            // capture: incident.capture ? atob(incident.capture) : null
+          }
+        });
+      } catch (err) {
+        console.error(`Error processing incident ${key}:`, err);
+      }
+    });
+    
+    return formattedData;
+  };
+
+  // Fetch incidents data from API
+  const fetchIncidents = async () => {
+    setIsLoading(true);
+    setError(null);
+    
+    try {
+      // Get authentication data from localStorage
+      const user = localStorage.getItem('user');
+      const token = localStorage.getItem('token');
+  
+      // Make API request with authentication data
+      const response = await fetch('https://safecommute.onrender.com/retrieve', {
+        method: 'POST', // Changed to POST since server expects data in request body
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          user: user,
+          token: token
+        })
+      });
+  
+      // Handle response
+      if (!response.ok) {
+        throw new Error(`API error: ${response.status}`);
+      }
+  
+      // Check for authentication failure response
+      const responseData = await response.json();
+      console.log("API Response:", responseData);
+      
+      // If authentication failed
+      if (responseData === "UNV") {
+        throw new Error("Authentication failed. Please log in again.");
+      }
+      
+      // Process successful response data
+      let formattedData;
+      
+      // Check if the data has the incidents property
+      if (responseData && responseData.incidents) {
+        formattedData = formatIncidentData(responseData.incidents);
+      } else {
+        // If there's no incidents property, try to format the data directly
+        formattedData = formatIncidentData(responseData);
+      }
+      
+      if (formattedData.length === 0) {
+        throw new Error("No valid incident data found");
+      }
+      
+      // Update markers and stats
+      setMarkers(formattedData);
+      
+      // Calculate stats
+      const incidents = formattedData.filter(m => m.type === "incident").length;
+      const traffic = formattedData.filter(m => m.type === "traffic").length;
+      
+      setStats({
+        incidents,
+        traffic
+      });
+      
+      return formattedData;
+    } catch (err) {
+      console.error("Error fetching incident data:", err);
+      
+      // Check if this is an authentication error
+      if (err.message.includes("Authentication failed")) {
+        setError("Authentication failed. Please log in to see real data. Using sample data instead.");
+        // Optionally redirect to login
+        // navigate('/login');
+      } else {
+        setError("Failed to load incident data. Using sample data instead.");
+      }
+      
+      // Fall back to sample data in all error cases
+      const fallbackData = [...sampleIncidents, ...sampleTraffic];
+      setMarkers(fallbackData);
+      setStats({
+        incidents: sampleIncidents.length,
+        traffic: sampleTraffic.length
+      });
+      
+      return fallbackData;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Load initial data
+  useEffect(() => {
+    fetchIncidents();
+  }, []);
+
   // Filter markers based on selection
   useEffect(() => {
+    if (!markers.length) return;
+
     if (filter === "all") {
-      setMarkers([...sampleIncidents, ...sampleTraffic]);
+      // No filtering needed
     } else if (filter === "incidents") {
-      setMarkers([...sampleIncidents]);
+      setMarkers(prevMarkers => prevMarkers.filter(marker => marker.type === "incident"));
     } else if (filter === "traffic") {
-      setMarkers([...sampleTraffic]);
+      setMarkers(prevMarkers => prevMarkers.filter(marker => marker.type === "traffic"));
     }
   }, [filter]);
 
@@ -108,14 +261,8 @@ export default function Dashboard() {
 
   // Refresh data handler
   const handleRefresh = () => {
-    // In a real app, you would fetch fresh data here
     setSelectedMarker(null);
-    // For demo, we'll just use the same data
-    setMarkers([...sampleIncidents, ...sampleTraffic]);
-    setStats({
-      incidents: sampleIncidents.length,
-      traffic: sampleTraffic.length
-    });
+    fetchIncidents();
   };
 
   // Render loading and error states
@@ -128,11 +275,18 @@ export default function Dashboard() {
         <header className="dashboard-header">
           <h1 className="gradient">SafeCommute</h1>
           <div className="controls">
-            <button className="bg-purple-500 px-3 py-1 hover:bg-purple-700 rounded" onClick={handleRefresh}>Refresh Data</button>
+            <button 
+              className="bg-purple-500 px-3 py-1 hover:bg-purple-700 rounded" 
+              onClick={handleRefresh}
+              disabled={isLoading}
+            >
+              {isLoading ? "Loading..." : "Refresh Data"}
+            </button>
             <select 
               value={filter} 
               onChange={(e) => setFilter(e.target.value)}
               className="filter-dropdown"
+              disabled={isLoading}
             >
               <option value="all">All Data</option>
               <option value="incidents">Incidents Only</option>
@@ -140,6 +294,12 @@ export default function Dashboard() {
             </select>
           </div>
         </header>
+
+        {error && (
+          <div className="error-banner bg-red-100 border border-red-400 text-red-700 px-4 py-2 mb-4 rounded">
+            {error}
+          </div>
+        )}
 
         <div className="dashboard-content">
           {/* Google Map */}
@@ -172,6 +332,9 @@ export default function Dashboard() {
                   <div className="info-window">
                     <h3>{selectedMarker.title}</h3>
                     <p>Type: {selectedMarker.type}</p>
+                    {selectedMarker.details && selectedMarker.details.capture && (
+                      <p>Additional notes: {selectedMarker.details.capture}</p>
+                    )}
                   </div>
                 </InfoWindow>
               ) : null}
@@ -208,6 +371,9 @@ export default function Dashboard() {
                     )}
                     {selectedMarker.type === 'traffic' && (
                       <p>Severity: Moderate</p>
+                    )}
+                    {selectedMarker.details && selectedMarker.details.capture && (
+                      <p>Notes: {selectedMarker.details.capture}</p>
                     )}
                   </div>
                 ) : (
