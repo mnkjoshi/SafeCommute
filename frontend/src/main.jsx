@@ -2,8 +2,11 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 
 import './stylesheets/root.css'
+import './stylesheets/auth.css'
 
 import Root from './routes/root.jsx'
+import Auth from './routes/auth.jsx'
+import Dashboard from './routes/dashboard.jsx'
 import ErrorPage from './routes/error.jsx'
 
 import {
@@ -24,7 +27,7 @@ const router = createBrowserRouter([
   },
   {
     path: "/dashboard",
-    element: <Root/> ,
+    element: <Dashboard/> ,
     errorElement: <ErrorPage/>,
   },
   // {

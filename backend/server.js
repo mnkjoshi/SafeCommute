@@ -115,12 +115,22 @@ app.post('/verify', async (request, response) => {
     }
 });
 
-app.post('/favourite', async (request, response) => {
-    const {user, token, favId} = request.body
+app.post('/report', async (request, response) => {
+    const {type, location, capture} = request.body
+    const db = admin.database();
+
+    db.ref(`incidents/${GenerateToken()}`).set({ type: type, location: location, capture: capture})
+    response.status(200)
+    response.send("Success")
+})
+
+
+app.get('/retrieve', async (request, response) => {
+    const {user, token} = request.body
     const db = admin.database();
 
     if (Authenticate(user, token)) {
-        const snapshot = await db.ref(`users/${user}/favourites`).once('value');
+        const snapshot = await db.ref(`incidents`).once('value');
         if (snapshot.val() == "nil") {
             db.ref(`users/${user}`).set({ favourites: JSON.stringify([favId])})
         } else {
@@ -135,73 +145,6 @@ app.post('/favourite', async (request, response) => {
         response.send("UNV")
     }
 })
-
-app.post('/unfavourite', async (request, response) => {
-    const {user, token, favId} = request.body
-    const db = admin.database();
-
-    if (Authenticate(user, token)) {
-        const snapshot = await db.ref(`users/${user}/favourites`).once('value');
-        if (snapshot.val() == "nil") {
-            response.status(202)
-            response.send("UFE")
-        } else {
-            let favourites = JSON.parse(snapshot.val())
-            favourites.splice(favourites.indexOf(favId), 1)
-            db.ref(`users/${user}`).update({ favourites: JSON.stringify(favourites)})
-        }
-        response.status(200)
-        response.send("Success")
-    } else {
-        response.status(202)
-        response.send("UNV")
-    }
-})
-
-app.post('/continue', async (request, response) => {
-    const {user, token, favId} = request.body
-    const db = admin.database();
-
-    if (Authenticate(user, token)) {
-        const snapshot = await db.ref(`users/${user}/continues`).once('value');
-        if (snapshot.val() == "nil") {
-            db.ref(`users/${user}`).set({ continues: JSON.stringify([favId])})
-        } else {
-            let continues = JSON.parse(snapshot.val())
-            continues.push(favId)
-            db.ref(`users/${user}`).update({ continues: JSON.stringify(continues)})
-        }
-        response.status(200)
-        response.send("Success")
-    } else {
-        response.status(202)
-        response.send("UNV")
-    }
-})
-
-app.post('/uncontinue', async (request, response) => {
-    const {user, token, favId} = request.body
-    const db = admin.database();
-
-    if (Authenticate(user, token)) {
-        const snapshot = await db.ref(`users/${user}/continues`).once('value');
-        if (snapshot.val() == "nil") {
-            response.status(202)
-            response.send("UFE")
-        } else {
-            let continues = JSON.parse(snapshot.val())
-            continues.splice(continues.indexOf(favId), 1)
-            db.ref(`users/${user}`).update({ continues: JSON.stringify(continues)})
-        }
-        response.status(200)
-        response.send("Success")
-    } else {
-        response.status(202)
-        response.send("UNV")
-    }
-})
-
-
 
 //process.env.PORT
 const listener = app.listen(3000, (error) => {
@@ -313,7 +256,7 @@ async function OfferVerify(username, token, email) {
 
     email = email.replace("@@@", ".")
 
-    let link = "https://the-golden-hind.web.app/auth/" + token
+    let link = "https://safecommuteweb.app/auth/" + token
     const msg = {
         to: email, // Change to your recipient
         from: 'disvelop@proton.me', // Change to your verified sender
