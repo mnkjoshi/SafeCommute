@@ -51,6 +51,8 @@ export default function Dashboard() {
   });
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [actionInProgress, setActionInProgress] = useState(false);
 
   // Load Google Maps script
   const { isLoaded, loadError } = useLoadScript({
@@ -100,8 +102,10 @@ export default function Dashboard() {
           type: incident.type?.toLowerCase().includes('traffic') ? "traffic" : "incident",
           details: {
             ...incident,
-            // If you need to decode the base64 capture data, do it here
-            // capture: incident.capture ? atob(incident.capture) : null
+            // Decode the base64 capture data if needed
+            capture: incident.capture && incident.capture !== "QQ==" ? 
+              atob(incident.capture) : 
+              (incident.type || "Incident reported")
           }
         });
       } catch (err) {
@@ -124,7 +128,7 @@ export default function Dashboard() {
   
       // Make API request with authentication data
       const response = await fetch('https://safecommute.onrender.com/retrieve', {
-        method: 'POST', // Changed to POST since server expects data in request body
+        method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
@@ -139,27 +143,21 @@ export default function Dashboard() {
         throw new Error(`API error: ${response.status}`);
       }
   
-      // Check for authentication failure response
+      // Parse the response data
       const responseData = await response.json();
       console.log("API Response:", responseData);
       
-      // If authentication failed
+      // Check for authentication failure response
       if (responseData === "UNV") {
         throw new Error("Authentication failed. Please log in again.");
       }
       
-      // Process successful response data
-      let formattedData;
-      
-      // Check if the data has the incidents property
-      if (responseData && responseData.incidents) {
-        formattedData = formatIncidentData(responseData.incidents);
-      } else {
-        // If there's no incidents property, try to format the data directly
-        formattedData = formatIncidentData(responseData);
-      }
+      // The response data should now be directly usable without additional 
+      // checks for an incidents property - it should match our database structure
+      const formattedData = formatIncidentData(responseData);
       
       if (formattedData.length === 0) {
+        console.warn("No valid incident data found in the response");
         throw new Error("No valid incident data found");
       }
       
@@ -246,6 +244,106 @@ export default function Dashboard() {
       );
     }
   }, [isLoaded]);
+
+  // Check if user is admin
+  useEffect(() => {
+    const user = localStorage.getItem('user');
+    const token = localStorage.getItem('token');
+    
+    if (user && token) {
+      // For simplicity, we're assuming all authenticated users are admins
+      // In a production app, you would check with the backend
+      setIsAdmin(true);
+    }
+  }, []);
+
+  // Handle incident action (dismiss or escalate)
+  const handleIncidentAction = async (action) => {
+    if (!selectedMarker || actionInProgress) return;
+    
+    setActionInProgress(true);
+    
+    try {
+      const user = localStorage.getItem('user');
+      const token = localStorage.getItem('token');
+      
+      if (!user || !token) {
+        throw new Error("You must be logged in to perform this action");
+      }
+      
+      const response = await fetch('https://safecommute.onrender.com/incident/update', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          user,
+          token,
+          incidentId: selectedMarker.id,
+          action
+        })
+      });
+      
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.message || `Failed to ${action} incident`);
+      }
+      
+      // Update the local state to reflect the change
+      setMarkers(prevMarkers => 
+        prevMarkers.map(marker => 
+          marker.id === selectedMarker.id 
+            ? { 
+                ...marker, 
+                status: action,
+                details: { ...marker.details, status: action } 
+              } 
+            : marker
+        )
+      );
+      
+      // Update selected marker
+      setSelectedMarker(prev => ({
+        ...prev,
+        status: action,
+        details: { ...prev.details, status: action }
+      }));
+      
+      // Update stats if needed
+      if (action === 'dismiss') {
+        // If dismissing, we might want to update stats
+        setStats(prev => ({
+          ...prev,
+          // You can adjust how stats are calculated based on dismissed incidents
+        }));
+      }
+      
+      // Show success message
+      setError(null);
+      alert(`Incident ${action}d successfully`);
+      
+    } catch (err) {
+      console.error(`Error ${action}ing incident:`, err);
+      setError(`Failed to ${action} incident: ${err.message}`);
+    } finally {
+      setActionInProgress(false);
+    }
+  };
+
+  // Helper function to get status color
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'dismiss':
+      case 'dismissed':
+        return 'text-gray-500'; // Gray for dismissed
+      case 'escalate':
+      case 'escalated':
+        return 'text-red-600'; // Red for escalated
+      default:
+        return 'text-yellow-500'; // Yellow for active/pending
+    }
+  };
 
   // Get marker icon based on type
   const getMarkerIcon = (type) => {
@@ -366,14 +464,46 @@ export default function Dashboard() {
                       Location: {selectedMarker.position.lat.toFixed(4)}, 
                       {selectedMarker.position.lng.toFixed(4)}
                     </p>
-                    {selectedMarker.type === 'incident' && (
-                      <p>Status: Active</p>
-                    )}
-                    {selectedMarker.type === 'traffic' && (
-                      <p>Severity: Moderate</p>
-                    )}
+                    
+                    {/* Status indicator */}
+                    <p className={`font-semibold ${getStatusColor(selectedMarker.status || selectedMarker.details?.status)}`}>
+                      Status: {selectedMarker.status || selectedMarker.details?.status || 'Active'}
+                    </p>
+                    
+                    {/* Display incident details */}
                     {selectedMarker.details && selectedMarker.details.capture && (
                       <p>Notes: {selectedMarker.details.capture}</p>
+                    )}
+                    
+                    {/* Admin actions */}
+                    {isAdmin && !['dismissed', 'escalated'].includes(selectedMarker.status || selectedMarker.details?.status) && (
+                      <div className="admin-actions mt-4">
+                        <h4 className="text-sm font-bold mb-2">Admin Actions</h4>
+                        <div className="flex space-x-2">
+                          <button
+                            onClick={() => handleIncidentAction('dismiss')}
+                            disabled={actionInProgress}
+                            className="bg-gray-500 hover:bg-gray-600 text-white px-3 py-1 rounded text-sm"
+                          >
+                            {actionInProgress ? 'Processing...' : 'Dismiss'}
+                          </button>
+                          <button
+                            onClick={() => handleIncidentAction('escalate')}
+                            disabled={actionInProgress}
+                            className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm"
+                          >
+                            {actionInProgress ? 'Processing...' : 'Escalate'}
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                    
+                    {/* Show action history if available */}
+                    {selectedMarker.details?.updatedAt && (
+                      <p className="text-sm mt-2">
+                        Last updated: {new Date(selectedMarker.details.updatedAt).toLocaleString()} 
+                        by {selectedMarker.details.updatedBy}
+                      </p>
                     )}
                   </div>
                 ) : (

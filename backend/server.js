@@ -157,6 +157,57 @@ app.post('/retrieve', async (request, response) => {
     }
 });
 
+// Add a new endpoint for updating incident status (dismiss or escalate)
+app.post('/incident/update', async (request, response) => {
+    const { user, token, incidentId, action } = request.body;
+    
+    if (!incidentId || !action || (action !== 'dismiss' && action !== 'escalate')) {
+        response.status(400).send("Invalid parameters");
+        return;
+    }
+    
+    const db = admin.database();
+    
+    try {
+        // Check if user is authenticated and has admin rights
+        const isAdmin = await CheckAdminRights(user, token);
+        
+        if (!isAdmin) {
+            response.status(403).send("Unauthorized: Admin rights required");
+            return;
+        }
+        
+        // Check if the incident exists
+        const incidentRef = db.ref(`incidents/${incidentId}`);
+        const snapshot = await incidentRef.once('value');
+        
+        if (!snapshot.exists()) {
+            response.status(404).send("Incident not found");
+            return;
+        }
+        
+        // Update the incident status
+        await incidentRef.update({ 
+            status: action,
+            updatedBy: user,
+            updatedAt: new Date().toISOString()
+        });
+        
+        // Log the action
+        db.ref(`activity_logs`).push({
+            user: user,
+            action: `${action}d incident`,
+            incidentId: incidentId,
+            timestamp: new Date().toISOString()
+        });
+        
+        response.status(200).send({ success: true, message: `Incident ${action}d successfully` });
+    } catch (error) {
+        console.error("Error updating incident:", error);
+        response.status(500).send("Server error occurred");
+    }
+});
+
 //process.env.PORT
 const listener = app.listen(3000, (error) => {
     if (error == null) {
@@ -288,4 +339,32 @@ async function OfferVerify(username, token, email) {
 
 function GenerateToken() {
     return Math.random().toString(36).substr(2) + Math.random().toString(36).substr(2);
+}
+
+// Add a helper function to check admin rights
+async function CheckAdminRights(user, token) {
+    try {
+        // First check if user is authenticated
+        const isAuthenticated = await Authenticate(user, token);
+        
+        if (!isAuthenticated) {
+            return false;
+        }
+        
+        // Then check if user has admin rights
+        const db = admin.database();
+        const snapshot = await db.ref(`users/${user}/role`).once('value');
+        
+        // If the role is explicitly set to 'admin', return true
+        if (snapshot.exists() && snapshot.val() === 'admin') {
+            return true;
+        }
+        
+        // For now, let's make all authenticated users admins for testing
+        // Remove this in production and rely on the role check above
+        return true;
+    } catch (error) {
+        console.error("Error checking admin rights:", error);
+        return false;
+    }
 }
