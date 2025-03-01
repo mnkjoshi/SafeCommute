@@ -126,9 +126,9 @@ export default function Dashboard() {
     <div className="dashboard-main">
       <div className="dashboard-container">
         <header className="dashboard-header">
-          <h1>SafeCommute</h1>
+          <h1 className="gradient">SafeCommute</h1>
           <div className="controls">
-            <button onClick={handleRefresh}>Refresh Data</button>
+            <button className="bg-purple-500 px-3 py-1 hover:bg-purple-700 rounded" onClick={handleRefresh}>Refresh Data</button>
             <select 
               value={filter} 
               onChange={(e) => setFilter(e.target.value)}
