@@ -9,7 +9,7 @@ import axios from 'axios';
 //https://dashboard.render.com/web/srv-crcllkqj1k6c73coiv10/events
 //https://console.firebase.google.com/u/0/project/the-golden-hind/database/the-golden-hind-default-rtdb/data/~2F
 
-
+console.log("HELLO??")
 const app = express();
 
 app.use(express.json());
