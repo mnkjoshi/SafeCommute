@@ -4,7 +4,6 @@ import dotenv from 'dotenv'
 
 import cors from 'cors'
 import admin from "firebase-admin";
-import Search from "./endpoints/search.js"
 import axios from 'axios';
 
 //https://dashboard.render.com/web/srv-crcllkqj1k6c73coiv10/events
@@ -131,15 +130,8 @@ app.get('/retrieve', async (request, response) => {
 
     if (Authenticate(user, token)) {
         const snapshot = await db.ref(`incidents`).once('value');
-        if (snapshot.val() == "nil") {
-            db.ref(`users/${user}`).set({ favourites: JSON.stringify([favId])})
-        } else {
-            let favourites = JSON.parse(snapshot.val())
-            favourites.push(favId)
-            db.ref(`users/${user}`).update({ favourites: JSON.stringify(favourites)})
-        }
         response.status(200)
-        response.send("Success")
+        response.send(JSON.parse(snapshot.val()))
     } else {
         response.status(202)
         response.send("UNV")
