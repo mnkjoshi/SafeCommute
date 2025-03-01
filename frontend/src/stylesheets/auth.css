@@ -1,0 +1,158 @@
+body,
+html {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  /* Adjust the color to match the exact background of your image */
+  overflow-x: hidden;
+  overflow-y: hidden;
+  
+}
+
+.html {
+    transition: 1s;
+    mix-blend-mode: difference;
+}
+
+p { 
+    margin: 0;
+}
+
+#root {
+    width: 100%;
+    height: 100%;
+}
+
+.auth-main {
+    width: 100%;
+    height: 100%;
+    background-color: #1E1E1E;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: start;
+}
+
+.auth-holder {
+    width: 100%;
+    height: 100%;
+    background-color: #1E1E1E;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: start;
+}
+
+.auth-title {
+    color: white;
+    font-size: 50px;
+    font-family: Viga, monospace;
+    margin-bottom: 15px;
+    align-items: center;
+    margin-top: 12%;
+}
+
+.auth-box {
+    width: 25%;
+}
+
+.auth-box-info {
+    color: white;
+    font-size: 15px;
+    font-family: Viga, monospace;
+    font-weight: 100;
+}
+
+.auth-box-input {
+    width: 100%;
+    height: 35px;
+    margin-top: 3px;
+    margin-bottom: 20px;
+    background-color: #151515;
+    border-radius: 4px;
+    border-style: hidden;
+    color: white;
+    font-family: Viga, monospace;
+    padding-left: 10px;
+}
+
+.auth-box-input:focus {
+    outline-width: 0px;
+}
+
+.auth-entry {
+    color: white;
+    stroke: none;
+    border-style: hidden;
+    font-family: Viga, monospace;
+    font-size: 20px;
+    transition: 0.2s;
+    background-color: #151515;
+    border-radius: 4px;
+    padding-left: 20px;
+    padding-right: 20px;
+    cursor: pointer;
+    margin-top: 15px;
+}
+
+.auth-entry:hover {
+    background-color: #2a2a2a;
+}
+
+.auth-entry:active {
+    background-color: #4b4b4b;
+}
+
+.auth-switch {
+    color: white;
+    stroke: none;
+    border-style: hidden;
+    font-family: Viga, monospace;
+    font-size: 17px;
+    transition: 0.2s;
+    background: none;
+    margin-top: 5px;
+    cursor: pointer;
+}
+
+.auth-switch-underline {
+    background-color: white;
+    color: white;
+    width: 0%;
+    height: 1px;
+    opacity: 1;
+    margin-top: 0px;
+    transition: 0.3s;
+}
+
+.auth-notification {
+    width: 40%;
+    height: 7%;
+    align-items: center;
+    background-color: #21982d;
+    border-radius: 10px;
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    position: absolute;
+    bottom: 8%;
+    opacity: 0;
+    transition: 0.3s;
+}
+
+.auth-notification-info {
+    color: white;
+    text-align: center;
+    font-family: Viga, monospace;
+    font-size: 20px;
+}
+
+@media (max-width: 768px) {
+    .auth-box {
+        width: 60%;
+    }
+
+    .auth-notification {
+        width: 80%;
+    }
+}
