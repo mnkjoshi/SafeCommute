@@ -69,11 +69,12 @@ while True:
 	else:
 		frameBuffer[pos] = im
 		pos = (pos + 1) & 15
-		fighting = isFighting()
+		# fighting = isFighting()
 
 	# Annotate weapons
 	weapons = findWeapons(im)
 
+	fighting = False
 	if fighting is not False:
 		if type(weapons) == list:
 			fighting, = grequests.map([fighting])
@@ -104,10 +105,13 @@ while True:
 		})
 		if time.time() - lastAlert > 5:
 			lastAlert = time.time()
-			a = grequests.post(config["smsEndpoint"], json={
-				"recipient": config["smsRecipient"],
-				"message": msg + config["location"] + ". Please check dashboard for more information.",
-			})
+			# a = grequests.post(config["smsEndpoint"], json={
+			# 	"recipient": config["smsRecipient"],
+			# 	"message": msg + config["location"] + ". Please check dashboard for more information.",
+			# })
+			# grequests.map([a, b])
+		else:
+			grequests.map([b])
 
 	cv2.imshow("Camera", np.asarray(im)[:, :, ::-1])
 	key = cv2.waitKey(1)
