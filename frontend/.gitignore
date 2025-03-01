@@ -23,3 +23,4 @@ secrets
 *.njsproj
 *.sln
 *.sw?
+.env
