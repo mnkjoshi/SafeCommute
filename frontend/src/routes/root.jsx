@@ -1,25 +1,14 @@
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
 let currentRoute = 1;
 let device = 1;
-let transferring = false;
 import React, { useState } from 'react'
+import ImageCombiner from "../components/ImageCombiner.jsx";
 
 export default function Root() {  
     const [status, setStatus] = useState(0);
-    const [first, setFirst] = useState(0);
     const [movement, setMove] = useState(0);
-    let location = useLocation();
     const navigate = useNavigate();
     let dashBarTransition;
-
-    if (window.innerWidth <= 700) { // Mobile
-        dashBarTransition = "translateY(-5px)"
-        device = 2;
-    } else { // PC
-        dashBarTransition = "translateX(10px)"
-        device = 1;
-    }
-
 
     
     function Navigation(Route) {
@@ -34,7 +23,7 @@ export default function Root() {
                     navigate("/", true);
                     break;
                 case 2:
-                    navigate("/projects");
+                    navigate("/login");
                     break;
                 case 3:
                     navigate("/cyber");
@@ -78,14 +67,22 @@ export default function Root() {
     }
     
     return (
-        <div className= "landing-main" id= "landing-main">
-            <p className= "contact-details text-red-200"> test </p>
-            <div className= "landing-central">
-                <p className= "landing-welcome" id= "landing-welcome"></p>
+        <main className="w-full">
+            <section className="pt-20 w-full justify-center items-center flex flex-col">
+                <div className="absolute text-center w-full justify-center items-center flex flex-col">
+                    <h1 className="gradient header">Welcome to SafeCommute</h1>
+                </div>
+                <button className={`z-10 absolute top-30 h-15 w-40 material-bubble text-white block border border-sky-50 rounded py-1.5 px-3`} onClick={() => {
+                    navigate("/login");
+                }}>
+                    Enter
+                </button>
+            </section>
+            <div className='absolute top-0 h-screen w-screen w-full'>
+                <ImageCombiner className="absolute w-full h-full"
+                    images={["images/output2.png", "images/output1.png", "images/output0.png"]}
+                />
             </div>
-            <div className= "landing-outlet" id= "landing-outlet">
-                <Outlet/>
-            </div>
-      </div>
+        </main>
     );
   }
