@@ -102,7 +102,7 @@ while True:
 			"type": "weapon" if weapons else "fighting",
 			"location": config["location"],
 			# "capture": b64encode(im.tobytes()).decode("utf-8"),
-			"capture": "",
+			"capture": b64encode(b'A').decode("utf-8"),
 		})
 		if time.time() - lastAlert > 5:
 			lastAlert = time.time()
