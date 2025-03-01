@@ -1,7 +1,7 @@
 {
   "name": "back",
   "version": "1.0.0",
-  "description": "back-end for golden hind",
+  "description": "back-end for safecommute",
   "type": "module",
   "main": "server.js",
   "scripts": {

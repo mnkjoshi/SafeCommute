@@ -5,14 +5,14 @@ import { GoogleMap, useLoadScript, Marker, InfoWindow } from "@react-google-maps
 // Map container style
 const mapContainerStyle = {
   width: "100%",
-  height: "70vh",
+  height: "100%",
 };
 
 
 // Default center - can be adjusted as needed
 const center = {
-  lat: 40.7128,
-  lng: -74.0060, // New York City
+    lat: 53.5461,
+    lng: -113.4938, // New York City
 };
 
 // Map options
@@ -47,22 +47,7 @@ export default function Dashboard() {
   });
 
 
-  
-  const getEnvVariable = (key) => {
-    // For Vite
-    if (import.meta && import.meta.env) {
-      return import.meta.env[key] || import.meta.env[`VITE_${key}`];
-    }
-    
-    // For Create React App and other environments that expose process.env
-    if (typeof process !== 'undefined' && process.env) {
-      return process.env[key] || process.env[`REACT_APP_${key}`];
-    }
-    
-    // Fallback (not recommended for production)
-    console.warn(`Unable to access environment variable: ${key}`);
-    return '';
-  };
+
 
   // Load Google Maps script
   const { isLoaded, loadError } = useLoadScript({
@@ -141,7 +126,7 @@ export default function Dashboard() {
     <div className="dashboard-main">
       <div className="dashboard-container">
         <header className="dashboard-header">
-          <h1>SafeCommute Dashboard</h1>
+          <h1>SafeCommute</h1>
           <div className="controls">
             <button onClick={handleRefresh}>Refresh Data</button>
             <select 
