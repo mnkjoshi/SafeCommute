@@ -1,7 +1,6 @@
 import { useNavigate, useParams } from "react-router-dom";
 import axios from 'axios'
-import React, { useState, useEffect } from 'react'
-import Topbar from "../components/topbar"
+import React, { useState, useEffect } from 'react' 
 
 let infoToShow = "Nothing"
 let infoType = "Error"
@@ -30,7 +29,6 @@ export default function Auth() {
 
     return (
         <div className= "auth-main">
-          <Topbar/>
           {status == 0 ? <Login setStatus={setStatus} navigate={navigate}/> : <Registration setStatus={setStatus}/>}
           {info == 0 ? null : <Notification/>}
         </div>
@@ -40,7 +38,7 @@ export default function Auth() {
 function Verify(Token, navigate) {
   axios({
     method: 'post',
-    url: 'https://golden-hind.onrender.com/verify',
+    url: 'https://safecommute.onrender.com/verify',
     data: {
       token: Token,
     }
@@ -78,7 +76,7 @@ function Attempt(Which, Username, Password, Email, navigate) {
     }
     axios({
       method: 'post',
-      url: 'https://golden-hind.onrender.com/login',
+      url: 'https://safecommute.onrender.com/login',
       data: {
         username: Username,
         password: Password
@@ -89,7 +87,7 @@ function Attempt(Which, Username, Password, Email, navigate) {
         localStorage.setItem("user", response.data.username)
         localStorage.setItem("token", response.data.token)
         notifyingLogin = true
-        Notify("Success", `Ahoy there, ${response.data.username}! Redirecting to the Golden Hind.`)
+        Notify("Success", `Hello admin, ${response.data.username}! Redirecting to SafeCommute dashboard.`)
         setTimeout(function() {
           notifyingLogin = false
           navigate("/app")
@@ -115,7 +113,7 @@ function Attempt(Which, Username, Password, Email, navigate) {
       }
       axios({
         method: 'post',
-        url: 'https://golden-hind.onrender.com/register',
+        url: 'https://safecommute.onrender.com/register',
         data: {
           username: Username,
           password: Password,
