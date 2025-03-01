@@ -73,7 +73,7 @@ export default function Root() {
                     <h1 className="gradient header">Welcome to SafeCommute</h1>
                 </div>
                 <button className={`z-10 absolute top-30 h-15 w-40 material-bubble text-white block border border-sky-50 rounded py-1.5 px-3`} onClick={() => {
-                    navigate("/login");
+                    navigate("/auth");
                 }}>
                     Enter
                 </button>

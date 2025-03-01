@@ -11,8 +11,12 @@
     "deploy": "vite build && firebase deploy"
   },
   "dependencies": {
+    "@react-google-maps/api": "^2.20.6",
     "@tailwindcss/vite": "^4.0.9",
+    "axios": "^1.8.1",
+    "dotenv": "^16.4.7",
     "framer-motion": "^12.4.7",
+    "process": "^0.11.10",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^6.26.1",

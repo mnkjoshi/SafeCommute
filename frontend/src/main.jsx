@@ -3,6 +3,8 @@ import ReactDOM from 'react-dom/client'
 
 import './stylesheets/root.css'
 import './stylesheets/auth.css'
+import './stylesheets/dashboard.css'
+
 
 import Root from './routes/root.jsx'
 import Auth from './routes/auth.jsx'

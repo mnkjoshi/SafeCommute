@@ -17,7 +17,7 @@ export default function Auth() {
 
     useEffect(() => {
         if (!(user == null) && !notifyingLogin) {
-            navigate('/app')
+            navigate('/dashboard')
         }
     })
 

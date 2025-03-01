@@ -8,6 +8,7 @@ const mapContainerStyle = {
   height: "70vh",
 };
 
+
 // Default center - can be adjusted as needed
 const center = {
   lat: 40.7128,
@@ -34,7 +35,7 @@ const sampleTraffic = [
 
 let currentMessage = 0;
 
-export default function Index() {
+export default function Dashboard() {
   const navigate = useNavigate();
   const mapRef = useRef();
   const [markers, setMarkers] = useState([...sampleIncidents, ...sampleTraffic]);
@@ -45,9 +46,29 @@ export default function Index() {
     traffic: sampleTraffic.length
   });
 
+
+  
+  const getEnvVariable = (key) => {
+    // For Vite
+    if (import.meta && import.meta.env) {
+      return import.meta.env[key] || import.meta.env[`VITE_${key}`];
+    }
+    
+    // For Create React App and other environments that expose process.env
+    if (typeof process !== 'undefined' && process.env) {
+      return process.env[key] || process.env[`REACT_APP_${key}`];
+    }
+    
+    // Fallback (not recommended for production)
+    console.warn(`Unable to access environment variable: ${key}`);
+    return '';
+  };
+
   // Load Google Maps script
   const { isLoaded, loadError } = useLoadScript({
-    googleMapsApiKey: process.env.REACT_APP_GOOGLE_MAPS_API_KEY || "YOUR_API_KEY",
+    // googleMapsApiKey: getEnvVariable('GOOGLE_MAPS_API_KEY'),
+    // AIzaSyCp2vo_WzQJ_9L1W7oYKEuEhF_5-4xxIWc
+    googleMapsApiKey: PUTAPIKEYHERE,
   });
 
   // Filter markers based on selection
@@ -117,7 +138,7 @@ export default function Index() {
   if (!isLoaded) return <div className="loading">Loading maps</div>;
 
   return (
-    <div className="index-main">
+    <div className="dashboard-main">
       <div className="dashboard-container">
         <header className="dashboard-header">
           <h1>SafeCommute Dashboard</h1>
