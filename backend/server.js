@@ -24,15 +24,10 @@ dotenv.config();
 const adminCert = JSON.parse(process.env.GOOGLE_CREDENTIALS);
 const firebaseConfig = {
     credential: admin.credential.cert(adminCert),
-    databaseURL: "https://the-golden-hind-default-rtdb.firebaseio.com/",
+    databaseURL: "https://safecommutedev-default-rtdb.firebaseio.com/",
 };
 
-
-
-
 const firebaseApp = admin.initializeApp(firebaseConfig)
-
-
 
 const mailAPIkey = process.env.mailAPIkey
 sgMail.setApiKey('SG.' + mailAPIkey)
@@ -118,152 +113,6 @@ app.post('/verify', async (request, response) => {
         response.status(202);
         response.send("UKE"); //Unknown error occurred
     }
-});
-
-app.post('/search', async (request, response) => {
-    const { query } = request.body;
-    Search(query).then((Data) => {
-        response.status(200);
-        response.send(Data);
-    })
-});
-
-app.post('/home', async (request, response) => {
-    const { user, token } = request.body
-    const db = admin.database();
-
-    const snapshot = await db.ref(`users/${user}/token`).once('value');
-    if (snapshot.exists()) {
-        if (snapshot.val() == token) {
-            const favourites = await db.ref(`users/${user}/favourites`).once('value');
-            const continues = await db.ref(`users/${user}/continues`).once('value');
-            let favArray = JSON.parse(favourites.val())
-            let conArray = JSON.parse(continues.val())
-
-            favArray = await Promise.all(favArray.map(item => GetInfo(item)));
-
-            conArray = await Promise.all(conArray.map(item => GetInfo(item)));
-
-            const Trending = await axios({
-                method: 'get',
-                url: 'https://api.themoviedb.org/3/trending/all/week?api_key=' + process.env.TMDB_Credentials,
-            });
-
-            response.status(200);
-            response.json({ favourites: favourites.val(), continues: continues.val(), favouritesData: favArray, continuesData: conArray, trendingData: Trending.data}); //User data retrieved successfully
-        }
-    } else {
-        response.status(202);
-        response.send("UDE"); //User does not exist
-    }
-});
-
-async function GetInfo(ID) {
-    const Key = ID.slice(1, 100000)
-    const Link = (ID.slice(0, 1) == "t" ? 'https://api.themoviedb.org/3/tv/' + Key + '?api_key=' + process.env.TMDB_Credentials: 'https://api.themoviedb.org/3/movie/' + Key + '?api_key=' + process.env.TMDB_Credentials)
-    try {
-        const apiResponse = await axios({
-            method: 'get',
-            url: Link,
-        });
-        return apiResponse.data
-    } catch(error) {
-        console.log(error)
-    }
-}
-
-app.post('/similar', async (request, response) => {
-    const { user, token, ID} = request.body
-
-    if (Authenticate(user, token)) {
-        try {
-            const Key = ID.slice(1, 100000)
-            const Link = (ID.slice(0, 1) == "t" ? 'https://api.themoviedb.org/3/tv/' + Key + '/similar?api_key=' + process.env.TMDB_Credentials : 'https://api.themoviedb.org/3/movie/' + Key + '/similar?api_key=' + process.env.TMDB_Credentials)
-           
-            const apiResponse = await axios({
-                method: 'get',
-                url: Link,
-            });
-            response.status(200)
-            response.send(JSON.stringify(apiResponse.data.results.slice(0,4)))
-        } catch(error) {
-            console.log(error)
-            response.status(202)
-            response.send("UKE")
-        }
-    } else {
-        response.status(202)
-        response.send("UNV")
-    }
-});
-
-app.post('/eretrieve', async (request, response) => {
-    const { user, token, series, season, episode } = request.body
-
-    if (Authenticate(user, token)) {
-        try {
-            const apiResponse = await axios({
-                method: 'get',
-                url: `https://api.themoviedb.org/3/tv/${series}/season/${season}/episode/${episode}?api_key=${process.env.TMDB_Credentials}`,
-            });
-    
-            response.status(200)
-            response.send(JSON.stringify(apiResponse.data))
-        } catch(error) {
-            console.log(error)
-            response.status(202)
-            response.send("UKE")
-        }
-    } else {
-        response.status(202)
-        response.send("UNV")
-    }
-});
-
-app.post('/mretrieve', async (request, response) => {
-    const { user, token, movie } = request.body
-
-    if (Authenticate(user, token)) {
-        try {
-            const apiResponse = await axios({
-                method: 'get',
-                url: 'https://api.themoviedb.org/3/movie/' + movie + '?api_key=' + process.env.TMDB_Credentials,
-            });
-            response.status(200)
-            response.send(JSON.stringify(apiResponse.data))
-        } catch(error) {
-            // console.log(error)
-            response.status(202)
-            response.send("UKE")
-        }
-    } else {
-        response.status(202)
-        response.send("UNV")
-    }
-    
-});
-
-app.post('/sretrieve', async (request, response) => {
-    const { user, token, series } = request.body
-
-    if (Authenticate(user, token)) {
-        try {
-            const apiResponse = await axios({
-                method: 'get',
-                url: 'https://api.themoviedb.org/3/tv/' + series + '?api_key=' + process.env.TMDB_Credentials,
-            });
-            response.status(200)
-            response.send(JSON.stringify(apiResponse.data))
-        } catch(error) {
-            // console.log(error)
-            response.status(202)
-            response.send("UKE")
-        }
-    } else {
-        response.status(202)
-        response.send("UNV")
-    }
-    
 });
 
 app.post('/favourite', async (request, response) => {

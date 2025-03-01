@@ -16,32 +16,16 @@ const router = createBrowserRouter([
     path: "/",
     element: <Root/> ,
     errorElement: <ErrorPage/>,
-    children: [
-      // {
-      //   index: true,
-      //   element: <Index/>
-      // },
-      // {
-      //   path: "/projects",
-      //   element: <Projects/>
-      // },
-      // {
-      //   path: "/cyber",
-      //   element: <Cyber/>
-      // },
-      // {
-      //   path: "/resume",
-      //   element: <Resume/>
-      // },
-      // {
-      //   path: "/resources",
-      //   element: <Resources/>
-      // },
-      // {
-      //   path: "/portal",
-      //   element: <Portal/>
-      // },
-    ]
+  },
+  {
+    path: "/auth",
+    element: <Auth/> ,
+    errorElement: <ErrorPage/>,
+  },
+  {
+    path: "/dashboard",
+    element: <Root/> ,
+    errorElement: <ErrorPage/>,
   },
   // {
   //   path: "/watch",
