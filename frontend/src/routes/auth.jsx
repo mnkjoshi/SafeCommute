@@ -163,7 +163,7 @@ export function Login({setStatus, navigate}) {
 
   return(
     <div className= "auth-holder">
-      <p className= "auth-title" id= "auth-title">Login</p>
+      <p className= "auth-title gradient " id= "auth-title">Login</p>
 
       <div className= "auth-box" id= "username-entry">
         <p className= "auth-box-info" id= "auth-box-user">Username</p>
@@ -176,7 +176,7 @@ export function Login({setStatus, navigate}) {
       </div>
 
       <button className= "auth-entry" onClick={() => Attempt("Login", document.getElementById("auth-user-input").value, document.getElementById("auth-pass-input").value, null, navigate)}>ENTER</button>
-      <button className= "auth-switch" onClick={() => setStatus(1)} onMouseEnter={() => document.getElementById("auth-switch-underline").style.width = "12%"} onMouseLeave={() => document.getElementById("auth-switch-underline").style.width = "0%"}>Don't have an account?</button>
+      <button className= "auth-switch text-purple-400" onClick={() => setStatus(1)} onMouseEnter={() => document.getElementById("auth-switch-underline").style.width = "12%"} onMouseLeave={() => document.getElementById("auth-switch-underline").style.width = "0%"}>Don't have an account?</button>
       <div className= "auth-switch-underline" id= "auth-switch-underline"/>
     </div>
   );
@@ -190,7 +190,7 @@ export function Registration ({setStatus}) {
 
   return(
     <div className= "auth-holder">
-      <p className= "auth-title" id= "auth-title">Register</p>
+      <p className= "auth-title gradient" id= "auth-title">Register</p>
 
       <div className= "auth-box" id= "username-entry">
         <p className= "auth-box-info" id= "auth-box-user">Username</p>

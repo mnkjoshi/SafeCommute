@@ -1,3 +1,5 @@
+@import "tailwindcss";
+
 /* Dashboard Styles */
 .dashboard-main {
   width: 100%;
@@ -14,7 +16,7 @@
 }
 
 .dashboard-header {
-  background-color: #2c3e50;
+  background-color: #000000;
   color: white;
   padding: 1rem 2rem;
   display: flex;
@@ -28,25 +30,12 @@
   gap: 1rem;
 }
 
-.controls button {
-  padding: 0.5rem 1rem;
-  background: #3498db;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-weight: 500;
-}
-
-.controls button:hover {
-  background: #2980b9;
-}
 
 .filter-dropdown {
   padding: 0.5rem 1rem;
   border-radius: 4px;
   border: 1px solid #ddd;
-  background-color: white;
+  background-color: #3C3D37;
 }
 
 .dashboard-content {
@@ -63,7 +52,7 @@
 
 .dashboard-sidebar {
   width: 300px;
-  background-color: white;
+  background-color: #1E1E1B;
   border-left: 1px solid #ddd;
   padding: 1rem;
   overflow-y: auto;
@@ -77,7 +66,7 @@
   margin-bottom: 1rem;
   padding-bottom: 0.5rem;
   border-bottom: 1px solid #eee;
-  color: #2c3e50;
+  color: #ffffff;
 }
 
 .stat-item {
@@ -85,18 +74,20 @@
   justify-content: space-between;
   margin-bottom: 0.5rem;
   padding: 0.5rem;
-  background-color: #f8f9fa;
+  background-color: #3C3D37;
+  color: white;
   border-radius: 4px;
 }
 
 .stat-value {
   font-weight: bold;
-  color: #3498db;
+  color: #d8abff;
 }
 
 .selection-details {
   padding: 1rem;
-  background-color: #f8f9fa;
+  background-color: #3C3D37;
+  color: white;
   border-radius: 4px;
   font-size: 0.9rem;
 }
