@@ -101,7 +101,8 @@ while True:
 		b = grequests.post(config["alertEndpoint"], json={
 			"type": "weapon" if weapons else "fighting",
 			"location": config["location"],
-			"capture": b64encode(im.tobytes()).decode("utf-8"),
+			# "capture": b64encode(im.tobytes()).decode("utf-8"),
+			"capture": "",
 		})
 		if time.time() - lastAlert > 5:
 			lastAlert = time.time()
