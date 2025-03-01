@@ -79,7 +79,7 @@ export default function Root() {
     
     return (
         <div className= "landing-main" id= "landing-main">
-            <p className= "contact-details"> mnjoshi+w@ualberta.ca </p>
+            <p className= "contact-details text-red-200"> test </p>
             <div className= "landing-central">
                 <p className= "landing-welcome" id= "landing-welcome"></p>
             </div>
