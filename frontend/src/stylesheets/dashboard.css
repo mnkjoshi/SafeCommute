@@ -35,7 +35,7 @@
   padding: 0.5rem 1rem;
   border-radius: 4px;
   border: 1px solid #ddd;
-  background-color: white;
+  background-color: #3C3D37;
 }
 
 .dashboard-content {
@@ -52,7 +52,7 @@
 
 .dashboard-sidebar {
   width: 300px;
-  background-color: #3C3D37;
+  background-color: #1E1E1B;
   border-left: 1px solid #ddd;
   padding: 1rem;
   overflow-y: auto;
@@ -74,18 +74,20 @@
   justify-content: space-between;
   margin-bottom: 0.5rem;
   padding: 0.5rem;
-  background-color: #f8f9fa;
+  background-color: #3C3D37;
+  color: white;
   border-radius: 4px;
 }
 
 .stat-value {
   font-weight: bold;
-  color: #994ddb;
+  color: #d8abff;
 }
 
 .selection-details {
   padding: 1rem;
-  background-color: #f8f9fa;
+  background-color: #3C3D37;
+  color: white;
   border-radius: 4px;
   font-size: 0.9rem;
 }
