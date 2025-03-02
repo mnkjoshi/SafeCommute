@@ -194,7 +194,7 @@ app.post('/incident/update', async (request, response) => {
         });
         
         const msg = {
-            to: 'kigom14407@lassora.com', // Change to your recipient
+            to: 'man4v@proton.me', // Change to your recipient
             from: 'disvelop@proton.me', // Change to your verified sender
             subject: 'TRANSIT ALERT',
             html: `<html> <head> <title>EMAIL</title> </head> <body> <div> <h1 style="text-align:center;">ADMIN ESCALATED TRANSIT ALERT</h1> <hr> <p style= "text-align:center;">INCIDENT HAS BEEN ESCALATED</p> <a clicktracking=off href="${incidentId}" style="text-align:center; align-self:center;">${incidentId}</a> </div> </body> </html>`,

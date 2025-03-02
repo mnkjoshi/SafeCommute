@@ -102,10 +102,8 @@ export default function Dashboard() {
           type: incident.type?.toLowerCase().includes('traffic') ? "traffic" : "incident",
           details: {
             ...incident,
-            // Decode the base64 capture data if needed
-            capture: incident.capture && incident.capture !== "QQ==" ? 
-              atob(incident.capture) : 
-              (incident.type || "Incident reported")
+            // Keep original capture value for image rendering
+            // We'll process it in the UI
           }
         });
       } catch (err) {
@@ -114,6 +112,42 @@ export default function Dashboard() {
     });
     
     return formattedData;
+  };
+
+  // Helper function to determine if a base64 string is likely an image
+  const isBase64Image = (base64String) => {
+    // Check if it's a non-empty string and has minimum base64 structure
+    return base64String && 
+           typeof base64String === 'string' && 
+           base64String.length > 10;
+  };
+
+  // Helper function to render capture content (image or text)
+  const renderCapture = (capture) => {
+    if (!capture) return null;
+    
+    if (isBase64Image(capture)) {
+      // Add data URL prefix if it's an image
+      let imgSrc = capture;
+      if (!imgSrc.startsWith('data:')) {
+        // Try to determine image type, default to JPEG
+        imgSrc = `data:image/jpeg;base64,${imgSrc}`;
+      }
+      
+      return (
+        <div className="image-container mt-2">
+          <img 
+            src={imgSrc} 
+            alt="Incident capture" 
+            className="incident-image rounded max-w-full" 
+            style={{ maxHeight: '200px' }}
+          />
+        </div>
+      );
+    }
+    
+    // If not an image, render as text
+    return <p>Notes: {capture}</p>;
   };
 
   // Fetch incidents data from API
@@ -431,8 +465,14 @@ export default function Dashboard() {
                     <h3>{selectedMarker.title}</h3>
                     <p>Type: {selectedMarker.type}</p>
                     {selectedMarker.details && selectedMarker.details.capture && (
-                      <p>Additional notes: {selectedMarker.details.capture}</p>
+                      renderCapture(selectedMarker.details.capture)
                     )}
+                    {/* Add a status badge if available */}
+                    {selectedMarker.status || selectedMarker.details?.status ? (
+                      <p className={`text-xs font-semibold mt-1 ${getStatusColor(selectedMarker.status || selectedMarker.details?.status)}`}>
+                        Status: {selectedMarker.status || selectedMarker.details?.status}
+                      </p>
+                    ) : null}
                   </div>
                 </InfoWindow>
               ) : null}
@@ -470,9 +510,9 @@ export default function Dashboard() {
                       Status: {selectedMarker.status || selectedMarker.details?.status || 'Active'}
                     </p>
                     
-                    {/* Display incident details */}
+                    {/* Display incident details with image support */}
                     {selectedMarker.details && selectedMarker.details.capture && (
-                      <p>Notes: {selectedMarker.details.capture}</p>
+                      renderCapture(selectedMarker.details.capture)
                     )}
                     
                     {/* Admin actions */}
