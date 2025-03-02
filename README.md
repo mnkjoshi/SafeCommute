@@ -1,6 +1,8 @@
 # SafeCommute
 **FrontEnd: Made with JavaScript, React and deployed.**
+
 **BackEnd: Made with JavaScript, Express.js and deployed.**
+
 **Hardware: Made with Python, LangSAM, YoloVX, and deployed on an OrangePi.**
 
 >[!NOTE]
