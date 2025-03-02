@@ -6,6 +6,8 @@ import grequests
 import requests
 import time
 import cv2
+import io
+from datetime import datetime
 
 config = None
 frameBuffer = []
@@ -31,6 +33,7 @@ def findWeapons(im):
 
 # Returns True if fighting is detected
 def isFighting():
+	return False
 	fourcc = cv2.VideoWriter_fourcc(*"mp4v")
 	height, width = np.asarray(frameBuffer[0]).shape[:2]
 	out = cv2.VideoWriter("temp_fight.mp4", fourcc, 10.0, (width, height))
@@ -53,11 +56,26 @@ except Exception as e:
 	print(e)
 	exit(1)
 
-vc = cv2.VideoCapture(0)
+vc = cv2.VideoCapture(2)
+
+# Resize image to 360p for sending over network
+def compress_to_360p(image):
+    # Resize to 640x360 (16:9 aspect ratio for 360p)
+    resized_image = image.resize((640, 360), Image.Resampling.LANCZOS)
+    # Convert to bytes using JPEG compression
+    img_byte_arr = io.BytesIO()
+    resized_image.save(img_byte_arr, format='JPEG', quality=85)
+    img_byte_arr.seek(0)
+    return img_byte_arr.getvalue()
 
 while True:
-	# Pull a frame from the camera
-	im = vc.read()[1]
+	# Clear buffer and grab the latest frame
+	for _ in range(5):  # Skip buffered frames
+		vc.grab()
+	ret, im = vc.retrieve()  # Get only the latest frame
+	if not ret:
+		continue
+		
 	cv2.imwrite("tmp.jpg", im)
 
 	im = Image.open("tmp.jpg")
@@ -97,22 +115,38 @@ while True:
 			msg = "Fighting detected at "
 		else:
 			msg = "Person with weapon detected at "
-		print(msg + config["location"])
-		b = grequests.post(config["alertEndpoint"], json={
-			"type": "weapon" if weapons else "fighting",
-			"location": config["location"],
-			# "capture": b64encode(im.tobytes()).decode("utf-8"),
-			"capture": b64encode(b'A').decode("utf-8"),
-		})
+		# generate random location
+		# def generate_random_location():
+		#	return f'{np.random.uniform(1, 100):.2f}, {np.random.uniform(1, 100):.2f}'
+		def generate_random_location():
+			# random location in edmonton
+			return f'{np.random.uniform(53.5, 53.6):.6f}, {np.random.uniform(-113.5, -113.4):.6f}'
+		config["location"] = generate_random_location()
+		# print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), msg + config["location"])
+		print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), msg + generate_random_location())
+		b = None
+		if config["alertEndpoint"]:
+			# Compress image to 360p before sending
+			compressed_image = compress_to_360p(im)
+			b = grequests.post(config["alertEndpoint"], json={
+				"type": "weapon" if weapons else "fighting",
+				"location": config["location"],
+				"capture": b64encode(compressed_image).decode("utf-8"),
+			})
 		if time.time() - lastAlert > 5:
 			lastAlert = time.time()
-			# a = grequests.post(config["smsEndpoint"], json={
-			# 	"recipient": config["smsRecipient"],
-			# 	"message": msg + config["location"] + ". Please check dashboard for more information.",
-			# })
-			# grequests.map([a, b])
+			if config["smsEndpoint"]:
+				a = grequests.post(config["smsEndpoint"], json={
+					"recipient": config["smsRecipient"],
+					"message": msg + config["location"] + ". Please check dashboard for more information.",
+				})
+				if b is not None:
+					grequests.map([a, b])
+				else:
+					grequests.map([a])
 		else:
-			grequests.map([b])
+			if b is not None:
+				grequests.map([b])
 
 	cv2.imshow("Camera", np.asarray(im)[:, :, ::-1])
 	key = cv2.waitKey(1)
